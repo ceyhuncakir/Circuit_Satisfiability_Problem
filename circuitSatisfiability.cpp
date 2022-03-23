@@ -21,6 +21,7 @@
 using std::cout, std::endl;
 
 #define SIZE 32
+#pragma GCC diagnostic ignored "-Wsign-compare"
 
 /** EXTRACT_BIT is a macro that extracts the ith bit of number n.
  *
@@ -36,9 +37,8 @@ int checkCircuit(int, bool *);
 int main (int argc, char *argv[])
 {
    unsigned int i, combination; // loop variable (32 bits)
-   int id = -1, numProcesses = -1,
-        start = -1, stop = -1, count = 0;
-                   // process id       // number of solutions
+   int id = -1, numProcesses = -1, start = -1, stop = -1, count = 0;
+
    int global_count = 0; // global count
 
    bool *v = (bool *)malloc(sizeof(bool) * SIZE); /* Each element is one of the 32 bits */
@@ -75,11 +75,12 @@ int main (int argc, char *argv[])
      myFile.open("spreadsheet/data.csv", std::ios::app);
      myFile << numProcesses << "; " << totalTime << "; " << global_count << std::endl;
      myFile.close();
-     cout << "global_count " << global_count << endl;
+
+    cout << "global_count " << global_count << endl;
    }
 
+   cout << endl;
    cout << "Process " << id << " finished in " << totalTime << " seconds." << endl;
-   cout << "Process " << id << " finished." << endl;
 
    return 0;
 }
