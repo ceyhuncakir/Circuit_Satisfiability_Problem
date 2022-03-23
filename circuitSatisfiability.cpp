@@ -35,18 +35,15 @@ int checkCircuit(int, bool *);
 
 int main (int argc, char *argv[])
 {
-   unsigned int i, combination; // loop variable (32 bits)
-   int id = -1;
+   unsigned int i, combination = UINT_MAX; // loop variable (32 bits)
+   int id = -1, numProcesses = -1, i1 = -1;
                    // process id
    int count = 0;        // number of solutions
    int global_count; // global count
 
-
    MPI_Init(&argc, &argv);
 
-   int world_size;
-
-   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+   MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
 
    MPI_Comm_rank(MPI_COMM_WORLD, &id);
 
@@ -57,12 +54,13 @@ int main (int argc, char *argv[])
    double startTime = 0.0, totalTime = 0.0;
    startTime = MPI_Wtime();
 
-   for (combination = 0; combination < UINT_MAX; combination++)
-   {
-      for (i = 0; i < SIZE; i++)
-         v[i] = EXTRACT_BIT(combination, i);
+   for(i1 = id; (unsigned) i1 < combination; i1 += numProcesses){
+     {
+        for (i = 0; i < SIZE; i++)
+           v[i] = EXTRACT_BIT(i1, i);
 
-      count += checkCircuit(id, v);
+        count += checkCircuit(id, v);
+     }
    }
 
    MPI_Reduce(&count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -74,7 +72,7 @@ int main (int argc, char *argv[])
    if(id == 0) {
      std::ofstream myFile;
      myFile.open("spreadsheet/data.csv", std::ios::app);
-     myFile << world_size << "; " << totalTime << "; " << global_count << std::endl;
+     myFile << numProcesses << "; " << totalTime << "; " << global_count << std::endl;
      myFile.close();
    }
 
