@@ -35,32 +35,33 @@ int checkCircuit(int, bool *);
 
 int main (int argc, char *argv[])
 {
-   unsigned int i, combination = UINT_MAX; // loop variable (32 bits)
-   int id = -1, numProcesses = -1, i1 = -1;
-                   // process id
-   int count = 0;        // number of solutions
-   int global_count; // global count
-
-   MPI_Init(&argc, &argv);
-
-   MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
-
-   MPI_Comm_rank(MPI_COMM_WORLD, &id);
+   unsigned int i, combination; // loop variable (32 bits)
+   int id = -1, numProcesses = -1,
+        start = -1, stop = -1, count = 0;
+                   // process id       // number of solutions
+   int global_count = 0; // global count
 
    bool *v = (bool *)malloc(sizeof(bool) * SIZE); /* Each element is one of the 32 bits */
 
-   cout << endl << "Process " << id << " is checking the circuit..." << endl;
+   MPI_Init(&argc, &argv);
+
+   MPI_Comm_rank(MPI_COMM_WORLD, &id);
+   MPI_Comm_size(MPI_COMM_WORLD, &numProcesses);
 
    double startTime = 0.0, totalTime = 0.0;
    startTime = MPI_Wtime();
 
-   for(i1 = id; (unsigned) i1 < combination; i1 += numProcesses){
-     {
+   int chunkSize = UINT_MAX / numProcesses;
+   start = id * chunkSize;
+   stop = start + chunkSize;
+
+   cout << endl << "Process " << id << " is checking the circuit..." << endl;
+
+   for(combination = start; combination < stop; combination++){
         for (i = 0; i < SIZE; i++)
-           v[i] = EXTRACT_BIT(i1, i);
+           v[i] = EXTRACT_BIT(combination, i);
 
         count += checkCircuit(id, v);
-     }
    }
 
    MPI_Reduce(&count, &global_count, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
@@ -74,12 +75,12 @@ int main (int argc, char *argv[])
      myFile.open("spreadsheet/data.csv", std::ios::app);
      myFile << numProcesses << "; " << totalTime << "; " << global_count << std::endl;
      myFile.close();
+     cout << "global_count " << global_count << endl;
    }
 
    cout << "Process " << id << " finished in " << totalTime << " seconds." << endl;
    cout << "Process " << id << " finished." << endl;
-   cout << "global_count " << global_count << endl;
-   cout << "A total of " << count << " solutions were found." << endl << endl;
+
    return 0;
 }
 
