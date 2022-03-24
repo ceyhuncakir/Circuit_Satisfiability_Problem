@@ -11,7 +11,7 @@ def plot():
 
     plt.plot(plotting_data['Number_Of_Processes'], plotting_data['Time'])
     plt.xlabel("Number of processes")
-    plt.ylabel("Time")
+    plt.ylabel("Time (s)")
     plt.savefig("plot_images/plot.png")
 
 plot()
